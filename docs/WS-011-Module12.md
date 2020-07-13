@@ -1,176 +1,159 @@
 ---
 lab:
-    title: 'Serverless architecture'
+    title: 'WS-011 - Module 12 - Migrating server workloads'
 ---
 
+## WS-011 - Module 12 - Migrating server workloads
 
-# Case Study - Serverless architecture
+### Scenario
 
-**Contents**
+Contoso Ltd. is an engineering, manufacturing, and distribution company. The organization is based in London, England and has major offices in Toronto, Canada and Sydney, Australia.
 
-<!-- TOC -->
+Since Contoso has been in business for many years, the existing servers include many versions of Windows Server. you're planning to migrate those services to servers running Windows Server 2019.
 
-- [Case Study - Serverless architecture](#case-study---serverless-architecture)
-- [Serverless architecture Case Study](#serverless-architecture-case-study)
-  - [Abstract and learning objectives](#abstract-and-learning-objectives)
-  - [Step 1: Review the customer case study](#step-1-review-the-customer-case-study)
-    - [Customer situation](#customer-situation)
-    - [Customer needs](#customer-needs)
-    - [Customer objections](#customer-objections)
-    - [Infographic for common scenarios](#infographic-for-common-scenarios)
-  - [Step 2: Design a proof of concept solution](#step-2-design-a-proof-of-concept-solution)
-  - [Additional references](#additional-references)
+### Exercise 1: Selecting a process to migrate server workloads
 
-<!-- /TOC -->
+#### Scenario
 
-# Serverless architecture Case Study
+Contoso Ltd. has an Active Directory Domain Services (AD DS) forest with a single Active Directory domain named contoso.com. The domain controllers for the domain are running a mix of Windows Server 2012 R2 and Windows Server 2016. Many applications are installed in the domain; standardizing on using Windows Server 2019 for all domain controllers is the best option for you.
 
-## Abstract and learning objectives
+Trey Research, a specialist engineering company, has been purchased by Contoso Ltd. Trey Research has its own AD DS forest connected by a forest trust. Much of the Trey Research infrastructure is old, so you need to standardize tools and management systems across the two companies.
 
-In this Case Study, you will work with a group to design a solution for processing vehicle photos as they are uploaded to a storage account, using serverless technologies on Azure. The license plate data needs to be extracted and stored in a highly available NoSQL data store for exporting. The data export process will be orchestrated by a serverless Azure component that coordinates exporting new license plate data to file storage and sending notifications as needed. You will also configure a Continuous Deployment process to automatically publish new changes to Function Apps. Finally, the entire processing pipeline will need to be monitored, with particular attention paid to components scaling to meet processing demand.
+There are other server workloads on servers running earlier versions of Windows Server. For example, the Toronto location has Dynamic Host Configuration Protocol (DHCP) on a server running Windows Server 2012 R2. You want to migrate as many of these server workloads as possible to Windows Server 2019.
 
-At the end of this Case Study, you will have gained insight on how best to take advantage of the new serverless wave by designing a highly scalable and cost-effective solution that requires very little code and virtually no infrastructure, compared to traditional hosted web applications and services.
+The main tasks for this exercise are as follows:
 
-## Step 1: Review the customer case study
+- Study the scenario
+- Plan how to update domains controllers to Windows Server 2019
+- Plan how to migrate other server workloads
 
-**Outcome**
 
-Analyze your customer's needs.
+##### Task 1: Study the scenario
 
-### Customer situation
+1. Study the lab scenario
 
-Contoso, Ltd. was founded in 2011 in Houston, Texas, and provides custom software development solutions for a number of clients. In addition to custom software development, they also have developed a financial billing and payment suite of software aimed at several vertical markets, from e-commerce to medical, financial services. They have recently added toll road booth management, as a new market opportunity opened to handle vehicle tracking and toll billing near their home office. Since this new business venture was a minor addition to their impressive portfolio of billing services, they have not dedicated significant resources to the vehicle processing portion of their custom-built TollBooth software suite. The most feature-rich component of this software suite is their existing payment management system that has been expanded to send bills to drivers after passing through any number of the managed toll booths. Included in the bill are a date/time stamp, toll booth location, and a photo of the vehicle as it passed through the booth.
+1. Study the exercise scenario
 
-Because so few resources were applied to the TollBooth software, which was meant to handle just a handful of local toll booths, Contoso has been using a manual process to identify license plates and send that data to their billing software. As a car passes through a toll booth, a medium resolution image is taken of the car to identify its license plate numbers/characters which will ultimately be used to look up and bill the customer. Currently, they periodically package and send those images to a third-party vendor, who manually identifies the license plate numbers and sends the list back to Contoso when they are done. At this point, Contoso collects batches of 1,000 transactions, saves the information to a CSV file hosted by an FTP server, where their downstream accounting system extracts the license plate information and bills the customer.
 
-Contoso has recently been awarded a large, yet unexpected contract to manage toll booths across most of the state, resulting in a 2500% increase in coverage, and is in talks with Oklahoma and New Mexico to provide toll booth services in those states as well. Despite the obvious benefits of such rapid growth, the company is concerned that they will be unable to meet the demand that comes with it. They are confident that their billing software can handle the load, as it has been the primary focus of development from the start, and has expanded into other markets, proving its ability to handle large-scale transactions and data processing. However, Contoso is concerned about how rapidly they can automate the license plate processing portion of their TollBooth infrastructure, while ensuring that the automated solution can scale to meet demand, particularly during unexpected spikes in traffic.
+#### Task 2: Plan how to update domain controllers to Windows Server 2019
 
-"What we need is a lightweight, yet powerful method that quickly pulls in vehicle photos as they are uploaded, and intelligently detect the license plate numbers, all while efficiently handling spikes in traffic," says Abby Burris, CIO, Contoso, ltd. "Most importantly, we do not want to manage long-lived application instances, we want to minimize our cost during slow traffic periods, and we need something our developers can quickly integrate into our existing infrastructure without a lot of training. Our primary goal is to rapidly replace this manual processing pipeline while continuing to devote our development resources to our core billing platform services."
+**Answer the following questions based on the scenario:**
 
-Abby went on to say that she has been following the relatively new serverless computing movement and believes that the benefits serverless brings a good match for what they are hoping to achieve in this project. The fewer infrastructure responsibilities for the already maxed out IT team, the better. However, she is not sure whether it is possible to locally develop the serverless components and automate the deployment process using CI/CD DevOps practices like they can with their more traditional web applications.
+1. To implement domain controllers running Windows Server 2019, should you upgrade the existing Active Directory Domain Services (AD DS) forest or migrate to a new AD DS forest?
 
-Since Contoso does not have any machine learning experts or data scientists on staff, they would like to know their options for using a ready-made machine learning service that can perform the license plate recognition task on the photos. They would prefer to go this route, rather than to train their staff to properly create and train advanced machine learning models, then having to incur the cost of hosting their own machine learning service for conducting this one task.
 
-Contoso wants to store captured vehicle photos in cloud storage for retrieval via custom web and mobile applications. These photos will need to be accessible by the downstream billing service for inclusion on the customer bills. Also, any photos containing license plates that could not be automatically detected will need to be marked as such and accessed later on for manual validation. Similarly, as photos are successfully processed for license plate detection, the plate information needs to be saved to a database, along with the capture date/time and tollbooth Id. Contoso has a customer service department who can monitor the queue of photos marked for manual validation, and enter the license plates into a web-based form so they can be exported along with the automatically processed license plate data.
+      **Answer**: It is rare to migrate to a new AD DS forest. If your main goal is to update domain controllers to a new version of Windows Server, you should update AD DS in the existing by adding domain controllers running Windows Server 2019. You should only consider migrated to a new AD DS forest when restructuring of domains or forests is required. For example, when two companies merge, the AD DS forest of one company might be migrated into the other.
 
-The process to export license plate data also needs to be automated. Contoso would like an automated workflow that runs on a regular interval to extract new license plate data since the last export and saves it in a CSV file that gets ingested by the billing software. They already have the CSV ingest process automated, so no changes are required beyond saving the file. Their FTP server would need to be modified to point to the cloud storage container instead of its local file system, which is a simple process that is out of scope for the automation task. The export interval should be set to one hour but be flexible to increasing or decreasing the interval as needed. This interval is based on the automated file ingest process used by the billing system.
+1. What are the highest domain and forest functional levels that you can implement?
 
-Customer service has requested that an alert email should be sent to a specific monitoring address if at any point the automated export does not complete due to no data. Given the export interval and the average number of vehicles that pass through the toll booths during any given hour, having no data to export would be the exception, not the rule. The alert would give them the peace of mind that they could go through internal support channels to investigate the license processing pipeline to address any issues promptly, without being inundated by too many unnecessary alert notifications. They are using Office 365 for their email services.
+    **Answer**: The highest domain and forest functional levels that you can implement are Windows Server 2016. There is no Windows Server 2019 functional level.
 
-In addition to the email alert notifications, Contoso would like to have a centralized monitoring dashboard they can use to watch the automated process in real time and drill down into historical telemetry later on if needed. This dashboard will help them keep an eye on the various Azure components, watching for any bottlenecks or weak points in their overall solution. The monitoring dashboard should also allow them to add custom alert notifications that get sent to IT staff if anything goes wrong.
 
-"Our directors want to see where we can take the notion of a serverless architecture and see if there truly are long-term performance and cost benefits," says Burris. "With the unexpected windfall of the toll booths contract, they want to make sure we have a tested strategy we can fall back on in the future when our IT and development teams are called upon once again to achieve the impossible."
+1. Which domain controller operating systems can you use to implement the highest possible domain and forest functional levels?
 
-As a stretch goal, Contoso would like to know that the license processing pipeline they have implemented is extensible to any number of future scenarios that are made possible once the license plate has been successfully processed. The one scenario they currently have in mind is how the pipeline would support more advanced analytics, providing the capability to process the licenses plates in a streaming fashion as well as to process historical license plate capture events in a batch fashion (e.g., that could scale to analyze the historical data in the 10's of terabytes). They are curious if these analytic scenarios could also be implemented using a serverless architecture.
+    **Answer**: You can use domain controllers running Windows Server 2016 and Windows Server 2019 in a domain or forest at the Windows Server 2016 functional level.
 
-### Customer needs
+1. What steps do you need to take before adding domain controllers running Windows Server 2019 to an existing AD DS forest?
 
-1. Replace manual process with a reliable, automated solution using serverless components.
+    **Answer**: If you have the correct permissions, you don't need to perform any steps before you install the first domain controller running Windows Server 2019. The domain controller promotion process automatically prepares the forest and domain. However, you do have the option to prepare the domain and forest manually. To prepare the AD DS forest you run Adprep /forestprep. Then you can prepare the domain by running Adprep /domainprep. In a multi-domain environment, you need to prepare each domain.
 
-2. Take advantage of a machine learning service that would allow them to accurately detect license plate numbers without needing artificial intelligence expertise.
 
-3. Mechanism for manually entering license plate images that could not be processed.
+1. What do you need to consider when removing domain controllers running previous Windows Server versions?
 
-4. Have a solution that can scale to any number of cars that pass through all toll booths, handling unforeseen traffic conditions that cause unexpected spikes in processed images.
+    **Answer**: For normal domain authentication, domain controllers are located by using DNS records. Those DNS records are automatically updated when domain controllers are added or removed. So, basic authentication doesn't require any special steps when removing a domain controller. However, because domain controllers are often used for DNS you need to ensure that clients and servers are updated to use the IP addresses of the new domain controllers. Additionally, some apps are configured to use specific domain controllers as Lightweight Directory Access Protocol (LDAP) servers for authentication. Those apps also need to be reconfigured with the IP address or name of new domain controllers.
 
-5. Establish an automated workflow that periodically exports processed license plate data on a regular interval, and sends an alert email when no items are exported.
+#### Task 3: Plan how to migrate other server workloads
 
-6. Would like to locally develop the serverless components and establish an automated deployment pipeline from source control.
+**Answer the following questions based on the scenario:**
 
-7. Use a monitoring dashboard that can provide a real-time view of serverless components, historical telemetry data for deeper analysis, and supports custom alerts.
+1. What steps do you need to perform before running the Windows PowerShell cmdlets in the Windows Server Migration Tools on Windows Server 2019.
 
-8. Design an extensible solution that could support serverless batch and real-time analytics, as well as other scenarios in the future.
+    **Answer**: To use the Windows Server Migration Tools on Windows Server 2019 you need to install the Windows Server Migration Tools feature. Then before you can use the cmdlets, you need to load the Windows PowerShell snap-in containing the cmdlets by running Add-PSSnapin Microsoft. Windows.Windows.ServerManager.Migration at a Windows PowerShell prompt.
 
-### Customer objections
+1. What steps do you need to perform on a source server running Windows Server 2012 R2 before you can use the the Windows PowerShell cmdlets in the Windows Server Migration Tools?
 
-1. We are concerned about how individual serverless components will be able to "talk" to each other and reliably pass messages through the pipeline.
+    **Answer**: To install the Windows SErver Migration Tools on a down-level server, you need to run SmigDeploy.exe to create a deployment folder for that specific operating system. The deployment folder is copied to the source server and installed by running SmigDeploy.exe from the deployment folder. Then you can load the snap-in for the Windows Server Migration Tools at a Windows PowerShell prompt on the source server.
 
-2. Will a serverless architecture that has the capacity to infinitely scale put us at risk for huge monthly bills?
+1. Which cmdlet can you use to verify which features can be migrated from a source server?
 
-3. How do we make sure that erroneous image processing does not make certain toll bills fall through the cracks or, even worse, send a bill to the wrong person?
+    **Answer**: The Get-SmigServerFeature cmdlet lists the Windows features that can be migrated from either a local computer or a migration stored.
 
-4. Is it possible to add a secure API that allows our customers to retrieve information about their vehicles plus captured photos? How do we protect our system from unauthorized access or an excessive number of requests?
+1. List the high level steps for using the Windows Server Migration Tools to migrate settings from a source server to a destination server.
 
-5. What is our best option to protect application secrets, such as connection strings, from being viewed by unauthorized users in the portal?
+    **Answer**: To migrate feature configuration from a source server to a destination server, you begin by installing the feature on the target server. Then you run Export-SmigServerSetting on the source server and Import-SmigServerSetting on the destination server.
 
-### Infographic for common scenarios
 
-![The Common Scenario diagram begins with an Internet icon on the left. Two arrows point from this icon to an Azure Storage Blobs Icon, and an Azure API Management icon. The Azure Storage Blobs icon points to an Azure functions icon, which in turn points to both a second Azure Functions icon (via an Event Grid arrow), and a second Azure Storage Blobs icon, which then points and ends at a Logic Apps icon. The Azure API Management icon points to two separate Azure Functions icon, which both point back to an Azure Cosmos DB icon, when then points to and ends at a Power BI icon.](media/common-scenarios.png 'Common Scenario diagram')
+### Exercise 2: Planning how to migrate files by using Storage Migration Service
 
-## Step 2: Design a proof of concept solution
+**Scenario**
 
-**Outcome**
+Contoso has file servers running multiple versions of Windows Server. The oldest file server is running Windows Server 2003. There are also a few Linux servers being used for file storage by developers. Some of the Linux servers are using Samba, but others are using Network File System (NFS). A new policy is being implemented that requires all file servers to be migrated to Windows Server 2019.
 
-Design a solution.
+The main tasks for this exercise are as follows:
 
-**Business needs**
+- Study the scenario
+- Plan the migration of file servers
+- Plan how to use Storage Migration Service
 
-Directions: Answer the following questions:
+#### Task 1: Study the scenario
 
-1. Who should you present this solution to? Who is your target customer audience? Who are the decision makers?
+1. Study the lab scenario
 
-2. What customer business needs do you need to address with your solution?
+1. Study the exercise scenario
 
-**Design**
+#### Task 2: Plan the migration of file servers
 
-Directions: Respond to the following questions:
+**Answer the following questions based on the scenario:**
 
-_High-level architecture_
+1. Can you use Storage Migration Service to migrate files shares from Windows Server 2003 to Windows Server 2019?
 
-1. Without getting into the details (the following sections will address the particular details), diagram your initial vision for handling the top-level requirements for the license plate processing serverless components, OCR capabilities, data export workflow, and monitoring plus DevOps.
+    **Answer**: Yes, Storage Migration Service supports migrating file shares from Windows Server 2003 or newer versions of Windows Server.
 
-_License plate processing serverless components_
+1. Can you use Storage Migration Service to migrate files on Linux servers?
 
-1. Which Azure messaging service would you recommend using to orchestrate event-driven activities between the serverless components?
+    **Answer**: Yes, if the source Linux servers are providing file shares accessible to Windows clients by using Samba. Storage Migration Service can't migrate files on Linux servers using only NFS.
 
-2. What Azure service would you suggest Contoso use to execute custom business logic code when an event is triggered?
+1. Can you use Storage Migration Service to consolidate multiple file servers to a single new server?
 
-3. Which pricing tier for the service would you recommend that would automatically scale to handle demand while charging only for work that was performed?
+    **Answer**: No. Storage Migration Service doesn't have the ability to merge the identities of multiple servers onto a single server.
 
-4. How do you ensure that downstream components, such as machine learning APIs, databases, and file stores, are not overloaded by the potential high load created when your serverless components dynamically scale?
 
-5. What Azure service would you recommend for storing the license plate data? Consider options that automatically scale to meet demand, and offer bindings to other serverless components that simplify connecting to and storing data within the data store.
+1. Can you use Storage Migration Service to migrate file shares to a virtual machine in Azure?
 
-_License plate OCR_
+    **Answer**: Yes. Storage Migration Service can migrate file shares to a virtual machine in Azure. If Azure is properly configured, Storage Migration Service can create the virtual machine automatically based on specifications that you provide.
 
-1. What service would you recommend Contoso use to conduct license plate object character recognition (OCR) processing to extract the license plate number from each photo as it enters the system?
 
-2. How would you integrate the OCR service to your license plate processing flow?
+#### Task 3: Plan how to use Storage Migration Service
 
-_Data export workflow_
+**Answer the following questions based on the scenario:**
 
-1. What Azure service would you recommend to create an automated workflow that runs on a regular interval to export processed license plate data and send alerts as needed?
+1. What software do you need to install to use Storage Migration Service?
 
-2. Which other services would you integrate into your workflow?
+    **Answer**: To use Storage Migration Service, you need to install the Storage Migration Service feature on the orchestrator server. On the destination server running Windows Server 2019, you should also install the Storage Migration Service Proxy feature. No software needs to be installed on the source server.
 
-_Extensible serverless analytics_
+1. What firewall configuration do you need to implement to use Storage Migration Service?
 
-1. Assuming they would like to be able to plug-in more solutions that respond to the event when a license plate has been successfully extracted from an image, how would you extend your solution using Event Grid? Be specific on the system topics, custom topics and subscriptions at play.
+    **Answer**: The Storage Migration Service needs to copy data and configure the source and destination servers. When you install the Storage Migration Service Proxy on a destination server, the firewall is configured automatically, but you should verify. On source and destination server, the following firewall rules must be enabled: File and Printer Sharing (SMB-In), Netlogon Service (NP-In), Windows Management Instrumentation (DCOM-In), Windows Management Instrumentation (WMI-In). On the orchestrator server, the File and Printer Sharing (SMB-In) rule needs to be enabled.
 
-2. What pipeline would you plug-into an Event Grid subscription listening for license plate events that could be used to provide real-time and batch analytics as a serverless solution?
+1. What accounts and permissions must be configured to use Storage Migration Service?
 
-_Monitoring and DevOps_
+    **Answer**: To perform the migrations, you can use a single account that has administrator permissions on the source server, the orchestrator server, and the destination server. Alternative, you can split the accounts into a source migration account and a destination migration account. A source migration account needs to have administrator permissions on the source server and the orchestrator server. A destination migration account needs to have administrator permissions in the destination server and the orchestrator server.
 
-1. What tools and services would you recommend Contoso use to develop the serverless components locally, synchronize with a source code repository, and implement continuous deployment?
+1. Which tool do you use to create and manage jobs?
 
-2. How would you monitor all the executing serverless components in real time from a single dashboard?
+    **Answer**: Storage Migration Service jobs are created and managed from Windows Admin Center in the Storage Migration Service node.
 
-3. Does your monitoring solution support exploring historical telemetry and configuring alerts?
 
-## Additional references
+1. What is the relationship between volumes in the source server and the destination server?
 
-|                                                              |                                                                                                                           |
-| ------------------------------------------------------------ | :-----------------------------------------------------------------------------------------------------------------------: |
-| **Description**                                              |                                                         **Links**                                                         |
-| Introduction to Azure Functions                              |                           <https://docs.microsoft.com/azure/azure-functions/functions-overview>                           |
-| What are Logic Apps?                                         |                       <https://docs.microsoft.com/azure/logic-apps/logic-apps-what-are-logic-apps>                        |
-| About Azure Cosmos DB                                        |                                 <https://docs.microsoft.com/azure/cosmos-db/introduction>                                 |
-| Choose between Azure services that deliver messages          |                         <https://docs.microsoft.com/azure/event-grid/compare-messaging-services>                          |
-| Monitor Azure Functions using Application Insights           |                          <https://docs.microsoft.com/azure/azure-functions/functions-monitoring>                          |
-| Introduction to Azure Event Grid                             |                                  <https://docs.microsoft.com/azure/event-grid/overview>                                   |
-| Call Azure Functions from logic apps                         |      <https://docs.microsoft.com/azure/logic-apps/logic-apps-azure-functions%23call-azure-functions-from-logic-apps>      |
-| Azure Cosmos DB + Azure Functions                            |                        <https://docs.microsoft.com/azure/cosmos-db/serverless-computing-database>                         |
-| Continuous deployment of Azure Functions                     |                    <https://docs.microsoft.com/azure/azure-functions/functions-continuous-deployment>                     |
-| Code and test Azure Functions locally                        |                          <https://docs.microsoft.com/azure/azure-functions/functions-run-local>                           |
-| What is Azure Key Vault?                                     |                              <https://docs.microsoft.com/azure/key-vault/key-vault-overview>                              |
-| Use Key Vault references for App Service and Azure Functions | <https://docs.microsoft.com/azure/app-service/app-service-key-vault-references?toc=%2fazure%2fazure-functions%2ftoc.json> |
+    **Answer**: A volume on the source server is mapped to a volume in the target server. If there are three source volumes then needs to be three destination volumes. There is no logic for renaming folders with conflicting names.
+
+
+1. After cutover, which identity information is moved from the source server to the destination server?
+
+    **Answer**: The name and IP addresses of the source server are moved to the destination server. The source server is renamed and give a new IP address.
+
+
+1. Which data won't be migrated from the source server to the destination server?
+
+    **Answer**: Storage Migration Service isn't able to copy locked files. So, if users have a file open when a copy attempt is made, the file won't be migrated. Previous versions of files are also not migrated.
